@@ -1,0 +1,49 @@
+/*Credits: Dynamic Drive CSS Library */
+/*URL: http://www.dynamicdrive.com/style/ */
+
+.solidblockmenu li {
+display: inline;
+}
+
+.solidblockmenu li a {
+float: left;
+color: #DDD;
+padding: 9px 11px;
+text-decoration: none; !important
+border-right: 1px solid white;
+}
+
+.solidblockmenu li a:visited {
+color: #DDD;
+}
+
+.solidblockmenu li .current, .solidblockmenu li a.current:visited {
+color: white;
+background: #2372c4;
+}
+
+.solidblockmenu li a.noSel:hover {
+color: #FFF;
+background: transparent url(images/blockactive.blue.gif) center center repeat-x;
+}
+
+.solidblockmenu {
+margin: 0;
+padding: 0;
+float: left;
+font: bold 13px Arial;
+width: 100%;
+/*
+border-top: 1px solid #625e00;
+*/
+/*border-width: 1px 0;
+*/
+background: black url(images/blockdefault.blue.gif) center center repeat-x;
+list-style: none;
+}
+
+<!--[if IE]>
+p.iepara{ /*Conditional CSS- For IE (inc IE7), create 1em spacing between menu and paragraph that follows*/
+padding-top: 1em;
+}
+<![endif]-->

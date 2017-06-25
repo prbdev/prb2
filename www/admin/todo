@@ -1,0 +1,5 @@
+This is where the admin stuff should go:
+- authenticated sessions for admins
+- upload rrd modules and update db
+- db management stuff
+

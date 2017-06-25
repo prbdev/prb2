@@ -1,0 +1,178 @@
+#!/usr/bin/php5
+<?php
+//
+declare(ticks = 1);
+
+#
+# Config section
+#
+ require dirname(__FILE__)."/etc/prbconfig.php";
+
+# We'll do our own error reporting
+ error_reporting(1);
+
+#
+# Get command line option
+#
+ if( getopt('d') ) { $debug=TRUE; } else { $debug=FALSE; }
+ if( $debug ) { print "Debugging is ON\n"; }
+
+#
+# function for signal handler
+#
+ function sig_handler($signo) {
+    global $child;
+    switch ($signo) {
+    case SIGCHLD:
+        $child--;
+    }
+ }
+ // install signal handler for dead kids
+ pcntl_signal(SIGCHLD, "sig_handler");
+
+#
+# Setup database connection
+#
+ $cnn_id = mysql_connect($cfg->dbHost, $cfg->dbUser, $cfg->dbPass);
+ mysql_select_db($cfg->dbName, $cnn_id);
+
+#
+# Should do further configuration checks here before continuing
+#
+
+#
+# Main processing loop - goes through all the found info records
+# and forks a process to handle it.
+#
+ $startTime = preg_replace('/^0?(\S+) (\S+)$/X', '$2$1', microtime());
+ $t=strftime( "%Y-%m-%d %H:%M:%S", time() );
+ $child=0;
+
+#
+# Select all active info records from all active hosts. We don't poll
+# hosts that are in maintenance or incident status or are decommissioned.
+#
+ $sql = 'select info.* from host, info 
+         where host.name=info.host
+         and
+         host.status=\'polling\' 
+         and
+         info.status=\'polling\'
+         order by host.id ';
+
+ $r = mysql_query($sql);
+ mysql_close($cnn_id);
+ $nrInfos = mysql_num_rows($r);
+ while( $info =  mysql_fetch_assoc($r) ) {
+    while ($child >= $cfg->maxChld) {
+        sleep(1); 
+        if( $debug ) { 
+            echo "\t Maximum children reached\n";
+        }
+    }
+    $child++;
+    $pid=pcntl_fork();
+    if ($pid == -1) {
+        die("could not fork");
+    } else if ($pid) {
+        // meet the parent
+        exit();
+    } else {
+        // we are the child
+        # Since we are the child, fork so that init will become our parent.  Init
+        # is good at wait()ing on children - ie: reaping.
+        $cpid = pcntl_fork();
+        if ($cpid == -1)
+        {
+            die("could not fork in child process\n");
+        }
+        if (!$cpid)
+        {
+
+            #
+            # Get the default module (parent class)
+            #
+            if(! is_file($cfg->libPath."/Info.php") ) {
+                print $cfg->libPath."/Info.php not found...\n";
+                exit(-1);
+            }
+            require $cfg->libPath."/Info.php";
+    
+            #
+            # Include the required module now
+            #
+            $mid = $info['id'];
+            $mod = $info['module'];
+            if( $debug ) {print "ID: $mid. Loading $mod.php...\n";}
+            if(! is_file($cfg->modPath."/$mod.php") ) {
+                print $cfg->modPath."/$mod.php not found...\n";
+                exit(-1);
+            }
+            require $cfg->modPath."/$mod.php";
+            #
+            # create object and do update in RRD database
+            #
+            $m = new $mod($info);
+
+            #
+            # check paths for rrd and png files
+            #
+            $m->rrdChkPath();
+            $m->Update();
+            if( $debug ) { print $m->outtext."\n"; }
+            exit(0);
+        }
+    }
+ }
+
+ $endTime = preg_replace('/^0?(\S+) (\S+)$/X', '$2$1', microtime());
+ $time = $endTime - $startTime;
+ $e=strftime( "%Y-%m-%d %H:%M:%S", time() );
+
+#
+# Open log file
+#
+ $handle = fopen ("$cfg->logPath/prbupdated.log", 'a');
+ fwrite($handle, "$t: $me started;");
+ fwrite($handle, "Number of info records processed: $nrInfos;");
+ fwrite($handle, "Total execution time of main process: $time (start: $startTime, end: $endTime);");
+ fwrite($handle, "$e: Ended\n");
+
+ require_once $cfg->libPath."/Info.php";
+#
+# Setup database connection
+#
+ $cnn_id = mysql_connect($cfg->dbHost, $cfg->dbUser, $cfg->dbPass);
+ mysql_select_db($cfg->dbName, $cnn_id);
+
+ $r = mysql_query("select * from prbStats order by id asc") or print mysql_error();
+ while( $info = mysql_fetch_assoc($r) ) {
+    $info[ifIndex] = 0;
+#
+# Include the required module now
+#
+    $mod = $info['module'];
+    if( $debug ) { print "Loading $cfg->modPath/$mod.php...\n";}
+    if(! is_file($cfg->modPath."/$mod.php") ) {
+        fwrite($handle, $cfg->modPath."/$mod.php not found...\n");
+        exit(-1);
+    }
+
+#
+# create object and do update in RRD database
+#
+    require_once $cfg->modPath."/$mod.php";
+    $p = new $mod($info);
+    $p->varVal = ${$p->varName};
+#
+# check paths for rrd and png files
+#
+    $p->rrdChkPath();
+    $p->Update();
+ }
+
+ fclose($handle);
+ if( $debug ) { print "All done!\n";}
+ exit(0);
+ 
+?>

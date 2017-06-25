@@ -1,0 +1,186 @@
+-- MySQL dump 10.9
+--
+-- Host: localhost    Database: prbdb
+-- ------------------------------------------------------
+-- Server version	4.1.14
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `host`
+--
+
+DROP TABLE IF EXISTS `host`;
+CREATE TABLE `host` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(255) NOT NULL default '',
+  `ip` varchar(15) NOT NULL default '',
+  `sysDescr` text NOT NULL,
+  `description` text NOT NULL,
+  `vendor` varchar(255) NOT NULL default '',
+  `OS` varchar(255) NOT NULL default '',
+  `location` varchar(255) NOT NULL default '',
+  `status` varchar(255) NOT NULL default '',
+  `uptime` bigint(20) NOT NULL default '0',
+  `lastPoll` bigint(20) default '0',
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `host`
+--
+
+--
+-- Table structure for table `hostStatus`
+--
+
+DROP TABLE IF EXISTS `hostStatus`;
+CREATE TABLE `hostStatus` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(80) NOT NULL default 'polling',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `hostStatus`
+--
+
+
+/*!40000 ALTER TABLE `hostStatus` DISABLE KEYS */;
+LOCK TABLES `hostStatus` WRITE;
+INSERT INTO `hostStatus` VALUES (1,'polling'),(2,'maintenance'),(3,'incident'),(4,'decommissioned');
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `hostStatus` ENABLE KEYS */;
+
+--
+-- Table structure for table `info`
+--
+
+DROP TABLE IF EXISTS `info`;
+CREATE TABLE `info` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(255) NOT NULL default '',
+  `description` text NOT NULL,
+  `grouping` varchar(255) NOT NULL default '',
+  `host` varchar(255) NOT NULL default '',
+  `community` varchar(255) NOT NULL default 'public',
+  `module` varchar(255) NOT NULL default '',
+  `status` varchar(50) NOT NULL default 'polling',
+  `ifIndex` int(11) NOT NULL default '0',
+  `ifDescr` varchar(255) NOT NULL default '',
+  `bandwidth` varchar(255) NOT NULL default '',
+  `limit` int(11) default NULL,
+  `in` varchar(255) NOT NULL default 'Incomming traffic',
+  `out` varchar(255) NOT NULL default 'Outgoing traffic',
+  `connection` varchar(255) NOT NULL default '',
+  `router` varchar(255) NOT NULL default '',
+  `OID` varchar(255) NOT NULL default '',
+  `HRule` int(11) default NULL,
+  `send` text NOT NULL,
+  `options` varchar(255) NOT NULL default '',
+  `disk` varchar(255) NOT NULL default '',
+  `queue` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`id`),
+  KEY `name` (`name`),
+  KEY `status` (`status`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `info`
+--
+
+
+--
+-- Table structure for table `modules`
+--
+
+DROP TABLE IF EXISTS `modules`;
+CREATE TABLE `modules` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(100) NOT NULL default '',
+  `description` text NOT NULL,
+  `active` tinyint(4) NOT NULL default '0',
+  PRIMARY KEY  (`id`),
+  KEY `name` (`name`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `modules`
+--
+
+
+/*!40000 ALTER TABLE `modules` DISABLE KEYS */;
+LOCK TABLES `modules` WRITE;
+INSERT INTO `modules` VALUES (2,'availability','',0),(3,'ciscocpu','',0),(4,'ciscoload','',0),(5,'cpq4cpu','',0),(6,'cpq8cpu','',0),(7,'errors','',0),(8,'hpuxload','',0),(9,'lincpu','',0),(10,'linload','',0),(11,'linmem','',0),(12,'netbotztemp','',0),(13,'port','',0),(14,'postfixqueue','',0),(15,'prbproctime','',0),(16,'prbrecords','',0),(17,'solload','',0),(18,'tcpres','',0),(19,'template','',0),(20,'ucdcpu','',0),(21,'ucdload','',0),(22,'ucdmem','',0),(23,'wavedir','',0),(24,'x86_4cpu','',0),(25,'zeetemp','',0),(26,'zeewave','',0),(27,'zeewind','',0),(28,'ping','',0),(29,'aixcpu','',0),(30,'aixiostat','IO Stats of IBM AIX systems. Depends on small daemon on server side.',0),(31,'aixdiskio','Disk in and out bytes',0),(37,'aixdiskbusy','',0),(34,'brocade_fc','brocade fibre channel port traffic',0);
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `modules` ENABLE KEYS */;
+
+--
+-- Table structure for table `prbStats`
+--
+
+DROP TABLE IF EXISTS `prbStats`;
+CREATE TABLE `prbStats` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(255) NOT NULL default '',
+  `host` varchar(50) NOT NULL default 'localhost',
+  `description` varchar(255) NOT NULL default '',
+  `module` varchar(255) NOT NULL default '',
+  `varName` varchar(25) NOT NULL default '',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `prbStats`
+--
+
+
+/*!40000 ALTER TABLE `prbStats` DISABLE KEYS */;
+LOCK TABLES `prbStats` WRITE;
+INSERT INTO `prbStats` VALUES (2,'prb_prbrecords_0','localhost','Number of records processed by prb (i.e. polls)','prbrecords','nrInfos'),(1,'prb_prbproctime_0','localhost','Total running time of prb during one polling cycle','prbproctime','time');
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `prbStats` ENABLE KEYS */;
+
+--
+-- Table structure for table `views`
+--
+
+DROP TABLE IF EXISTS `views`;
+CREATE TABLE `views` (
+  `id` int(11) NOT NULL auto_increment,
+  `parent` int(11) NOT NULL default '0',
+  `name` varchar(255) NOT NULL default '',
+  `description` varchar(255) NOT NULL default '',
+  `status` varchar(8) NOT NULL default 'folder',
+  `query` text NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `pid` (`parent`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `views`
+--
+
+
+/*!40000 ALTER TABLE `views` DISABLE KEYS */;
+LOCK TABLES `views` WRITE;
+INSERT INTO `views` VALUES (1,0,'<b>Custom views</b>','','folder',''),(2,1,'<b>Public</b>','','folder',''),(3,1,'<b>Example</b>','','folder',''),(4,3,'ping','All pings','view','select * from info where module = \'ping\''));
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `views` ENABLE KEYS */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+

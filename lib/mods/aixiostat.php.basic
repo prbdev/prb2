@@ -1,0 +1,189 @@
+<?php
+
+ Class aixiostat extends Info {
+
+    var $moduleVars;
+
+    function setVars() {
+        #
+        # setup which vars are used by this module
+        #
+        $this->moduleVars = array_merge(
+            $this->reqVars,
+            array(
+            'limit'   => 'opt',
+            ));
+    }
+
+    function CreateDB() {
+
+        $this->createOpts = array_merge(
+            array ( 
+            "DS:disk0i:GAUGE:600:U:U",
+            "DS:disk1i:GAUGE:600:U:U",
+            "DS:disk2i:GAUGE:600:U:U",
+            "DS:disk3i:GAUGE:600:U:U",
+            "DS:disk4i:GAUGE:600:U:U",
+            "DS:disk5i:GAUGE:600:U:U",
+            "DS:disk6i:GAUGE:600:U:U",
+            "DS:disk7i:GAUGE:600:U:U",
+            "DS:disk8i:GAUGE:600:U:U",
+            "DS:disk9i:GAUGE:600:U:U",
+            "DS:disk10i:GAUGE:600:U:U",
+            "DS:disk11i:GAUGE:600:U:U",
+            "DS:disk12i:GAUGE:600:U:U",
+            "DS:disk13i:GAUGE:600:U:U",
+            "DS:disk14i:GAUGE:600:U:U",
+            "DS:disk0o:GAUGE:600:U:U",
+            "DS:disk1o:GAUGE:600:U:U",
+            "DS:disk2o:GAUGE:600:U:U",
+            "DS:disk3o:GAUGE:600:U:U",
+            "DS:disk4o:GAUGE:600:U:U",
+            "DS:disk5o:GAUGE:600:U:U",
+            "DS:disk6o:GAUGE:600:U:U",
+            "DS:disk7o:GAUGE:600:U:U",
+            "DS:disk8o:GAUGE:600:U:U",
+            "DS:disk9o:GAUGE:600:U:U",
+            "DS:disk10o:GAUGE:600:U:U",
+            "DS:disk11o:GAUGE:600:U:U",
+            "DS:disk12o:GAUGE:600:U:U",
+            "DS:disk13o:GAUGE:600:U:U",
+            "DS:disk14o:GAUGE:600:U:U"
+            ),
+            $this->stdrra);
+
+        if( $this->debug ) {print "Creating $this->rrdFile...\n";}
+        return rrd_create($this->rrdFile, $this->createOpts, count($this->createOpts));
+    }
+
+    function Update() {
+
+	$this->ifIndex = 2000;
+        $fp = fsockopen("$this->host", $this->ifIndex, $errno, $errstr, 10);
+        if (!$fp) {
+
+        } else {
+            $val='';
+            while (!feof($fp)) {
+                $val.=fgets($fp, 128);
+            }
+            fclose($fp);
+        }
+
+	preg_match_all("/diskread\.rrd(.*)/", $val, $res);
+	$di = explode(":", $res[1][0]);
+	array_shift($di);
+	array_shift($di);
+
+	preg_match_all("/diskwrite\.rrd(.*)/", $val, $res);
+	$do = explode(":", $res[1][0]);
+	array_shift($do);
+	array_shift($do);
+	var_dump($res);
+	var_dump($do);
+	print "<P>";
+
+	$dis = join(":", $di);
+	$dos = join(":", $do);
+
+	$usage = "N:$dis:$dos";
+
+        $this->outtext = $usage;
+        $ret = rrd_update($this->rrdFile, $this->outtext );
+        if ( $ret == 0 ) {
+            $err = rrd_error();
+            echo "ERROR occurred: $err\n";
+        }
+        return $ret;
+    }
+
+    function Graph($ext, $time, $w=W, $h=H) {
+
+        $graph = array_merge(
+        $this->graphDefOpts, array (
+        "-w", $w, "-h", $h,
+        "-t", $this->description,
+        "-v Disk IOs",
+        "-s ".$time,
+        "DEF:di0=".$this->rrdFile.":disk0i:AVERAGE",
+        "DEF:do0=".$this->rrdFile.":disk0o:AVERAGE",
+        "DEF:di1=".$this->rrdFile.":disk1i:AVERAGE",
+        "DEF:do1=".$this->rrdFile.":disk1o:AVERAGE",
+        "DEF:di2=".$this->rrdFile.":disk1i:AVERAGE",
+        "DEF:do2=".$this->rrdFile.":disk1o:AVERAGE",
+        "DEF:di3=".$this->rrdFile.":disk1i:AVERAGE",
+        "DEF:do3=".$this->rrdFile.":disk1o:AVERAGE",
+        "DEF:di4=".$this->rrdFile.":disk1i:AVERAGE",
+        "DEF:do4=".$this->rrdFile.":disk1o:AVERAGE",
+        "DEF:di5=".$this->rrdFile.":disk1i:AVERAGE",
+        "DEF:do5=".$this->rrdFile.":disk1o:AVERAGE",
+        "LINE2:di0#".$this->colour(0).": disk0 in\\t",
+        "GPRINT:di0:LAST:Current\\: %.0lf\\t",
+        "GPRINT:di0:MAX:Max\\: %.0lf\\t",
+        "GPRINT:di0:AVERAGE:Average\\: %.0lf\\l",
+        "LINE2:do0#".$this->colour(2).": disk0 out\\t",
+        "GPRINT:do0:LAST:Current\\: %.0lf\\t",
+        "GPRINT:do0:MAX:Max\\: %.0lf\\t",
+        "GPRINT:do0:AVERAGE:Average\\: %.0lf\\l",
+        "LINE2:di1#".$this->colour(4).": disk1 in\\t",
+        "GPRINT:di1:LAST:Current\\: %.0lf\\t",
+        "GPRINT:di1:MAX:Max\\: %.0lf\\t",
+        "GPRINT:di1:AVERAGE:Average\\: %.0lf\\l",
+        "LINE2:do1#".$this->colour(6).": disk1 out\\t",
+        "GPRINT:do1:LAST:Current\\: %.0lf\\t",
+        "GPRINT:do1:MAX:Max\\: %.0lf\\t",
+        "GPRINT:do1:AVERAGE:Average\\: %.0lf\\l",
+        "LINE2:di2#".$this->colour(8).": disk2 in\\t",
+        "GPRINT:di2:LAST:Current\\: %.0lf\\t",
+        "GPRINT:di2:MAX:Max\\: %.0lf\\t",
+        "GPRINT:di2:AVERAGE:Average\\: %.0lf\\l",
+        "LINE2:do2#".$this->colour(10).": disk2 out\\t",
+        "GPRINT:do2:LAST:Current\\: %.0lf\\t",
+        "GPRINT:do2:MAX:Max\\: %.0lf\\t",
+        "GPRINT:do2:AVERAGE:Average\\: %.0lf\\l",
+        $this->lastUpdate())
+        );
+
+	$ret =  rrd_graph( $this->pngFilePre."-".$ext.".png", $graph, count($graph) );
+
+        if (! is_array($ret) && $this->debug ) {
+            $err = rrd_error();
+            print "rrd_graph() ERROR: $err<br>";
+            print "<br>".$this->pngFilePre."-".$ext.".png<p>";
+	    var_dump($graph);
+        }
+
+	}
+
+	function colour($n) {
+	$colours = array( 
+		   	"0cc3f1",
+    			"0c9ef1",
+    			"177bec",
+    			"2757e2",
+    			"9c2de1",
+    			"ba1fe7",
+    			"ef2df6",
+    			"ec37a1",
+    			"e54747",
+    			"ff5400",
+    			"e86b20",
+    			"ff9e06",
+    			"ffc90f",
+    			"eccc25",
+    			"e2d727",
+    			"c6d617",
+    			"9bd924",
+    			"77d146",
+    			"30dd2c",
+    			"1aea55",
+    			"12fd86",
+    			"2cffdf",
+    			"16effd",
+    			"36d1f8"
+		);
+
+	return $colours[$n];
+	}
+}
+?>

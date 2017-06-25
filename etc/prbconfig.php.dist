@@ -1,0 +1,77 @@
+<?php
+// Configuration file
+// $Id: prbconfig.php.dist,v 1.2 2006/08/03 09:20:19 guizy Exp $
+// Copy this file to prbconfig.php and
+// edit to your requirements
+
+##
+## user and group your webserver runs under
+## typically nobody, apache or wwwrun
+##
+ $cfg->user  = "nobody";
+ $cfg->group = "nobody";
+
+##
+## DB Access
+##
+ $cfg->dbUser = "mysql";
+ $cfg->dbPass = "mysql_password";
+ $cfg->dbHost = "localhost";
+ $cfg->dbName = "prbdb";
+
+##
+## Max child processes to spawn
+##
+ $cfg->maxChld = 55;
+
+##
+## Paths
+##
+ $cfg->basePath   = "/opt/www/prb"; // Set to where you installed prb
+ $cfg->relUrlPath = "/prb/www";     // If you config apache to point to the www dir then this is empty
+    // these are relative to the above
+ $cfg->libPath  = $cfg->basePath."/lib";
+ $cfg->rrdPath  = $cfg->basePath."/rrd";
+ $cfg->pngPath  = $cfg->basePath."/www/png";
+ $cfg->logPath  = $cfg->basePath."/log";
+ $cfg->modPath  = $cfg->libPath."/mods";
+ $cfg->pngUrlPath  = $cfg->relUrlPath."/png";
+
+##
+## Default Highcharts options file
+##
+ $cfg->hcOptionsFile = $cfg->basePath."/etc/hcOptions.php";
+
+##
+## Image sizes
+##
+ $cfg->Width  = 500;
+ $cfg->Height = 240;
+ define("W", "500");
+ define("H", "240");
+ $cfg->TNWidth  = 350;
+ $cfg->TNHeight = 130;
+
+##
+## Default font for rrdgraph
+##
+ $cfg->rrdFont = "/usr/X11R6/lib/X11/fonts/TTF/luximr.ttf";
+ //$cfg->rrdFont = "/usr/X11R6/lib/X11/fonts/TTF/tahoma.ttf";
+ //$cfg->rrdFont = "/usr/X11R6/lib/X11/fonts/TTF/luxisr.ttf";
+
+##
+## CSS file
+##
+ $cfg->CSS = $cfg->relUrlPath."/css/prb.css";
+
+##
+## Show all nodes or not (true or false)
+##
+ $cfg->showAll = true;
+
+##
+## The script name 
+##
+ $me = $_SERVER['PHP_SELF'];
+
+?>

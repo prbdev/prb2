@@ -1,0 +1,6 @@
+div.form-container div.buttonrow button, button {
+ color: #666;
+ cursor: hand;
+ height: 27px;
+ margin-bottom: 1px;
+}
